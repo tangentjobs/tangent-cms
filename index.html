@@ -1,1 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tangent Jobs — Admin CMS</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;height:100vh;overflow:hidden}
+  input,select,button{font-family:inherit}
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:#f1f1f1}
+  ::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:10px}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+  .fade-in{animation:fadeIn 0.25s ease}
+  .slide-in{animation:slideIn 0.2s ease}
+  .tab-btn:hover{background:rgba(59,130,246,0.1)!important}
+  .row-hover:hover{background:#f0f7ff!important;cursor:pointer}
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.08);transition:all 0.2s}
+  input:focus,select:focus{outline:2px solid #3b82f6;outline-offset:1px}
+  button:active{transform:scale(0.97)}
+  /* Login screen */
+  .login-bg{
+    position:fixed;inset:0;
+    background:linear-gradient(135deg,#0a1628 0%,#1a3a6b 50%,#0f2847 100%);
+    display:flex;align-items:center;justify-content:center;z-index:9999;
+  }
+  .login-card{
+    background:#fff;border-radius:20px;padding:40px;width:380px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.4);animation:fadeIn 0.4s ease;
+  }
+  .login-logo{
+    width:56px;height:56px;border-radius:14px;
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;font-weight:800;color:#fff;margin:0 auto 20px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
+// ─── PASSWORD ────────────────────────────────────────────────
+const ADMIN_PASSWORD = "tangent2025";
+
+// ─── DATA ────────────────────────────────────────────────────
+const INIT_CANDIDATES = [
+  {id:1,name:"Rahul Sharma",email:"rahul@gmail.com",phone:"+971 50 123 4567",location:"Dubai, UAE",nationality:"Indian",industry:"Banking & Finance",experience:"6–10 years",title:"Senior Finance Manager",status:"New",date:"2025-05-28",cv:"rahul_cv.pdf",note:""},
+  {id:2,name:"Priya Nair",email:"priya@yahoo.com",phone:"+971 50 234 5678",location:"Abu Dhabi, UAE",nationality:"Indian",industry:"Information Technology",experience:"3–5 years",title:"IT Business Analyst",status:"Reviewed",date:"2025-05-27",cv:"priya_nair_cv.pdf",note:""},
+  {id:3,name:"Mohammed Al Farsi",email:"mfarsi@outlook.com",phone:"+971 50 345 6789",location:"Sharjah, UAE",nationality:"Emirati",industry:"Engineering",experience:"10+ years",title:"Civil Engineering Lead",status:"Shortlisted",date:"2025-05-26",cv:"mfarsi_cv.pdf",note:""},
+  {id:4,name:"Anjali Mehta",email:"anjali.m@gmail.com",phone:"+91 98765 43210",location:"Mumbai, India",nationality:"Indian",industry:"HR & Administration",experience:"3–5 years",title:"HR Manager",status:"New",date:"2025-05-25",cv:"anjali_cv.pdf",note:""},
+  {id:5,name:"David Thomas",email:"d.thomas@gmail.com",phone:"+971 50 456 7890",location:"Dubai, UAE",nationality:"British",industry:"Hospitality & Tourism",experience:"6–10 years",title:"Hotel Operations Manager",status:"Rejected",date:"2025-05-24",cv:"david_cv.pdf",note:""},
+  {id:6,name:"Sunita Rao",email:"sunita.rao@hotmail.com",phone:"+91 76543 21098",location:"Bangalore, India",nationality:"Indian",industry:"Sales & Marketing",experience:"3–5 years",title:"Digital Marketing Manager",status:"Shortlisted",date:"2025-05-23",cv:"sunita_cv.pdf",note:""},
+  {id:7,name:"Khalid Hassan",email:"k.hassan@gmail.com",phone:"+971 50 567 8901",location:"Dubai, UAE",nationality:"Emirati",industry:"Banking & Finance",experience:"10+ years",title:"CFO",status:"Reviewed",date:"2025-05-22",cv:"khalid_cv.pdf",note:""},
+  {id:8,name:"Lakshmi Patel",email:"lakshmi.p@gmail.com",phone:"+91 98001 12345",location:"Bangalore, India",nationality:"Indian",industry:"Information Technology",experience:"0–2 years",title:"Junior Developer",status:"New",date:"2025-05-21",cv:"lakshmi_cv.pdf",note:""},
+];
+
+const INIT_EMPLOYERS = [
+  {id:1,company:"Emirates NBD",contact:"Sarah Al Mansouri",email:"hr@emiratesnbd.com",phone:"+971 4 234 5678",jobTitle:"Senior Finance Manager",industry:"Banking & Finance",location:"Dubai, UAE",salary:"AED 25k–35k",vacancies:2,type:"Full-time",desc:"Seeking CA/CPA qualified finance manager with 8+ years experience.",status:"Active",date:"2025-05-28"},
+  {id:2,company:"Etisalat",contact:"Ravi Kumar",email:"talent@etisalat.ae",phone:"+971 2 456 7890",jobTitle:"IT Project Manager",industry:"Information Technology",location:"Abu Dhabi, UAE",salary:"AED 20k–30k",vacancies:1,type:"Full-time",desc:"PMP/Agile certified project manager for cloud infrastructure projects.",status:"Active",date:"2025-05-27"},
+  {id:3,company:"ALEC Construction",contact:"John Murphy",email:"recruit@alec.ae",phone:"+971 4 345 6789",jobTitle:"Senior Civil Engineer",industry:"Engineering",location:"Sharjah, UAE",salary:"AED 15k–22k",vacancies:3,type:"Full-time",desc:"B.E. Civil + 8 years experience required. ADNOC projects.",status:"Pending",date:"2025-05-26"},
+  {id:4,company:"Jumeirah Group",contact:"Fatima Al Zaabi",email:"hr@jumeirah.com",phone:"+971 4 678 9012",jobTitle:"Hotel Operations Manager",industry:"Hospitality",location:"Dubai Marina",salary:"AED 18k–25k",vacancies:1,type:"Full-time",desc:"Hotel Management degree + 10 years exp at 5-star properties.",status:"Active",date:"2025-05-25"},
+  {id:5,company:"Noon.com",contact:"Aisha Khalid",email:"jobs@noon.com",phone:"+971 4 890 1234",jobTitle:"Digital Marketing Manager",industry:"E-Commerce",location:"Dubai, UAE",salary:"AED 15k–22k",vacancies:2,type:"Full-time",desc:"Google/Meta certified. E-commerce experience preferred.",status:"Pending",date:"2025-05-24"},
+];
+
+const JOBS_LIST = [
+  {title:"Senior Finance Manager",company:"Leading Investment Bank",location:"Dubai, UAE",salary:"AED 25,000–35,000",type:"Full-time",industry:"Banking & Finance",icon:"💰"},
+  {title:"IT Project Manager – Cloud & Infra",company:"Top Tech Firm",location:"Abu Dhabi, UAE",salary:"AED 20,000–30,000",type:"Full-time",industry:"Technology",icon:"💻"},
+  {title:"HR Business Partner",company:"Multinational Corp",location:"Dubai, UAE",salary:"AED 18,000–24,000",type:"Contract",industry:"Human Resources",icon:"👥"},
+  {title:"Senior Civil Engineer",company:"Construction Giant",location:"Sharjah, UAE",salary:"AED 15,000–22,000",type:"Full-time",industry:"Engineering",icon:"🏗️"},
+  {title:"Hotel Operations Manager",company:"5-Star Property",location:"Dubai Marina",salary:"AED 18,000–25,000",type:"Full-time",industry:"Hospitality",icon:"🏨"},
+  {title:"Sales Director – GCC Region",company:"FMCG Leader",location:"Dubai, UAE",salary:"AED 30,000–45,000",type:"Full-time",industry:"Sales & Marketing",icon:"📊"},
+  {title:"Data Analyst – Business Intelligence",company:"FinTech Startup",location:"Remote / Dubai",salary:"AED 12,000–18,000",type:"Remote",industry:"Technology",icon:"📈"},
+  {title:"Mechanical Engineer – Oil & Gas",company:"Energy Company",location:"Abu Dhabi, UAE",salary:"AED 20,000–28,000",type:"Contract",industry:"Engineering",icon:"⚙️"},
+];
+
+const SC = {
+  New:{bg:"#E6F1FB",color:"#0C447C"},
+  Reviewed:{bg:"#EAF3DE",color:"#3B6D11"},
+  Shortlisted:{bg:"#EEEDFE",color:"#3C3489"},
+  Rejected:{bg:"#FCEBEB",color:"#A32D2D"},
+  Active:{bg:"#EAF3DE",color:"#3B6D11"},
+  Pending:{bg:"#FAEEDA",color:"#633806"},
+  Closed:{bg:"#F3F4F6",color:"#374151"},
+};
+
+function Badge({s}){
+  const c = SC[s]||{bg:"#f3f4f6",color:"#374151"};
+  return <span style={{fontSize:11,fontWeight:600,padding:"3px 9px",borderRadius:20,background:c.bg,color:c.color,whiteSpace:"nowrap"}}>{s}</span>;
+}
+
+function Notif({n}){
+  if(!n) return null;
+  return <div className="fade-in" style={{position:"fixed",top:20,right:20,zIndex:9999,background:"#052e16",color:"#bbf7d0",padding:"12px 20px",borderRadius:10,fontSize:13,boxShadow:"0 4px 20px rgba(0,0,0,0.35)",display:"flex",alignItems:"center",gap:8}}>✓ {n}</div>;
+}
+
+// ─── LOGIN ───────────────────────────────────────────────────
+function Login({onLogin}){
+  const [pw,setPw] = useState("");
+  const [err,setErr] = useState(false);
+  const [show,setShow] = useState(false);
+  const submit = (e)=>{
+    e.preventDefault();
+    if(pw===ADMIN_PASSWORD){onLogin();}
+    else{setErr(true);setTimeout(()=>setErr(false),2000);}
+  };
+  return (
+    <div className="login-bg">
+      <div className="login-card">
+        <div className="login-logo">T</div>
+        <h2 style={{textAlign:"center",fontSize:20,fontWeight:700,color:"#111827",marginBottom:4}}>Tangent Jobs</h2>
+        <p style={{textAlign:"center",fontSize:13,color:"#6b7280",marginBottom:28}}>Admin CMS — Secure Login</p>
+        <form onSubmit={submit}>
+          <label style={{fontSize:12,fontWeight:600,color:"#374151",display:"block",marginBottom:6}}>Password</label>
+          <div style={{position:"relative",marginBottom:err?8:20}}>
+            <input type={show?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)}
+              placeholder="Enter admin password"
+              style={{width:"100%",padding:"11px 40px 11px 14px",borderRadius:8,border:`1.5px solid ${err?"#ef4444":"#e5e7eb"}`,fontSize:14,transition:"border 0.2s"}}
+            />
+            <button type="button" onClick={()=>setShow(s=>!s)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:16}}>{show?"🙈":"👁"}</button>
+          </div>
+          {err && <p style={{color:"#ef4444",fontSize:12,marginBottom:12}}>⚠ Incorrect password. Try again.</p>}
+          <button type="submit" style={{width:"100%",padding:"12px",borderRadius:8,background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",color:"#fff",border:"none",cursor:"pointer",fontSize:14,fontWeight:700,letterSpacing:"0.3px"}}>
+            Login to Dashboard →
+          </button>
+        </form>
+        <p style={{textAlign:"center",fontSize:11,color:"#9ca3af",marginTop:20}}>🔒 Tangent HR Solutions · Admin Only</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── SIDEBAR ─────────────────────────────────────────────────
+const TABS=[{id:"Dashboard",icon:"📊"},{id:"Candidates",icon:"👤"},{id:"Employers",icon:"🏢"},{id:"Jobs",icon:"💼"},{id:"Analytics",icon:"📈"},{id:"Settings",icon:"⚙️"}];
+
+function Sidebar({active,setActive,open,setOpen,newCount,logout}){
+  return (
+    <div style={{width:open?230:64,background:"linear-gradient(160deg,#0a1628 0%,#1a2f5a 100%)",display:"flex",flexDirection:"column",transition:"width 0.25s ease",overflow:"hidden",flexShrink:0}}>
+      <div style={{padding:"18px 14px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:34,height:34,borderRadius:9,background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontWeight:800,color:"#fff",fontSize:15}}>T</div>
+          {open && <div><div style={{color:"#fff",fontWeight:700,fontSize:14,lineHeight:1.2}}>Tangent Jobs</div><div style={{color:"rgba(255,255,255,0.4)",fontSize:10}}>Admin CMS</div></div>}
+        </div>
+      </div>
+      <nav style={{flex:1,padding:"10px 0"}}>
+        {TABS.map(t=>(
+          <button key={t.id} className="tab-btn" onClick={()=>setActive(t.id)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:open?"10px 16px":"10px",justifyContent:open?"flex-start":"center",background:active===t.id?"rgba(59,130,246,0.18)":"transparent",borderLeft:active===t.id?"3px solid #3b82f6":"3px solid transparent",border:"none",cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
+            <span style={{fontSize:18,flexShrink:0}}>{t.icon}</span>
+            {open && <span style={{color:active===t.id?"#93c5fd":"rgba(255,255,255,0.6)",fontSize:13,fontWeight:active===t.id?600:400}}>{t.id}</span>}
+            {open && t.id==="Candidates" && newCount>0 && <span style={{marginLeft:"auto",background:"#ef4444",color:"#fff",borderRadius:10,fontSize:10,padding:"2px 6px",fontWeight:700}}>{newCount}</span>}
+          </button>
+        ))}
+      </nav>
+      <div style={{padding:"10px 14px",borderTop:"1px solid rgba(255,255,255,0.07)",display:"flex",flexDirection:"column",gap:6}}>
+        <button onClick={()=>setOpen(s=>!s)} style={{background:"rgba(255,255,255,0.07)",border:"none",borderRadius:6,color:"rgba(255,255,255,0.5)",cursor:"pointer",padding:"6px",fontSize:12,width:"100%"}}>{open?"◀ Collapse":"▶"}</button>
+        {open && <button onClick={logout} style={{background:"rgba(239,68,68,0.15)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:6,color:"#fca5a5",cursor:"pointer",padding:"6px",fontSize:12,width:"100%"}}>🚪 Logout</button>}
+      </div>
+    </div>
+  );
+}
+
+// ─── DASHBOARD TAB ───────────────────────────────────────────
+function DashboardTab({candidates,employers,setActive,setSelC,setSelE}){
+  const stats=[
+    {label:"Total Candidates",value:candidates.length,icon:"👤",color:"#3b82f6",light:"#eff6ff"},
+    {label:"New Applications",value:candidates.filter(c=>c.status==="New").length,icon:"🆕",color:"#f59e0b",light:"#fffbeb"},
+    {label:"Shortlisted",value:candidates.filter(c=>c.status==="Shortlisted").length,icon:"⭐",color:"#8b5cf6",light:"#f5f3ff"},
+    {label:"Active Job Posts",value:employers.filter(e=>e.status==="Active").length,icon:"✅",color:"#10b981",light:"#ecfdf5"},
+    {label:"Total Employers",value:employers.length,icon:"🏢",color:"#06b6d4",light:"#ecfeff"},
+    {label:"Pending Review",value:employers.filter(e=>e.status==="Pending").length,icon:"⏳",color:"#ef4444",light:"#fef2f2"},
+  ];
+  return (
+    <div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginBottom:24}}>
+        {stats.map(s=>(
+          <div key={s.label} className="stat-card" style={{background:"#fff",borderRadius:12,padding:18,border:"1px solid #e5e7eb",transition:"all 0.2s"}}>
+            <div style={{width:40,height:40,borderRadius:10,background:s.light,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,marginBottom:10}}>{s.icon}</div>
+            <div style={{fontSize:28,fontWeight:800,color:s.color,lineHeight:1}}>{s.value}</div>
+            <div style={{fontSize:12,color:"#6b7280",fontWeight:500,marginTop:4}}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:18}}>
+        <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <h3 style={{fontSize:14,fontWeight:700,color:"#111827"}}>Recent Candidates</h3>
+            <button onClick={()=>setActive("Candidates")} style={{fontSize:11,color:"#3b82f6",background:"none",border:"none",cursor:"pointer"}}>View all →</button>
+          </div>
+          {candidates.slice(0,5).map(c=>(
+            <div key={c.id} onClick={()=>{setSelC(c);setActive("Candidates");}} className="row-hover" style={{display:"flex",alignItems:"center",gap:10,padding:"9px 6px",borderRadius:8,borderBottom:"1px solid #f9fafb",cursor:"pointer"}}>
+              <div style={{width:34,height:34,borderRadius:"50%",background:"#eff6ff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,color:"#3b82f6",fontSize:12,flexShrink:0}}>{c.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:600,color:"#111827",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
+                <div style={{fontSize:11,color:"#9ca3af"}}>{c.industry}</div>
+              </div>
+              <Badge s={c.status}/>
+            </div>
+          ))}
+        </div>
+        <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <h3 style={{fontSize:14,fontWeight:700,color:"#111827"}}>Recent Employers</h3>
+            <button onClick={()=>setActive("Employers")} style={{fontSize:11,color:"#3b82f6",background:"none",border:"none",cursor:"pointer"}}>View all →</button>
+          </div>
+          {employers.slice(0,5).map(e=>(
+            <div key={e.id} onClick={()=>{setSelE(e);setActive("Employers");}} className="row-hover" style={{display:"flex",alignItems:"center",gap:10,padding:"9px 6px",borderRadius:8,borderBottom:"1px solid #f9fafb",cursor:"pointer"}}>
+              <div style={{width:34,height:34,borderRadius:8,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,color:"#10b981",fontSize:12,flexShrink:0}}>{e.company.slice(0,2).toUpperCase()}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:600,color:"#111827",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.company}</div>
+                <div style={{fontSize:11,color:"#9ca3af"}}>{e.jobTitle}</div>
+              </div>
+              <Badge s={e.status}/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{background:"linear-gradient(135deg,#1e3a5f,#1d4ed8)",borderRadius:12,padding:20,color:"#fff",display:"flex",alignItems:"center",gap:20}}>
+        <div style={{fontSize:36}}>🎯</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:700,fontSize:15}}>Free Plan — Year 1 Active</div>
+          <div style={{fontSize:12,opacity:0.8,marginTop:3}}>All features free for 12 months. After Year 1, employer job posting becomes paid. Candidates always free.</div>
+        </div>
+        <div style={{background:"rgba(255,255,255,0.15)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,whiteSpace:"nowrap",flexShrink:0}}>⏱ 12 months left</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CANDIDATES TAB ──────────────────────────────────────────
+function CandidatesTab({candidates,setCandidates,selC,setSelC,showNotif}){
+  const [search,setSearch]=useState("");
+  const [filter,setFilter]=useState("All");
+
+  const updateStatus=(id,status)=>{
+    setCandidates(c=>c.map(x=>x.id===id?{...x,status}:x));
+    showNotif(`Status updated to "${status}"`);
+    if(selC?.id===id) setSelC(p=>({...p,status}));
+  };
+
+  const filtered=candidates.filter(c=>{
+    const q=search.toLowerCase();
+    return (c.name.toLowerCase().includes(q)||c.industry.toLowerCase().includes(q)||c.location.toLowerCase().includes(q)||c.email.toLowerCase().includes(q))
+      && (filter==="All"||c.status===filter);
+  });
+
+  return (
+    <div style={{display:"flex",gap:18,height:"calc(100vh - 120px)"}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+        <div style={{display:"flex",gap:10,marginBottom:14}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍  Search name, email, industry, location..."
+            style={{flex:1,padding:"10px 14px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}}/>
+          <select value={filter} onChange={e=>setFilter(e.target.value)}
+            style={{padding:"10px 14px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13,background:"#fff",cursor:"pointer"}}>
+            {["All","New","Reviewed","Shortlisted","Rejected"].map(s=><option key={s}>{s}</option>)}
+          </select>
+          <div style={{padding:"10px 14px",borderRadius:8,background:"#eff6ff",color:"#1d4ed8",fontSize:13,fontWeight:600,whiteSpace:"nowrap"}}>
+            {filtered.length} result{filtered.length!==1?"s":""}
+          </div>
+        </div>
+        <div style={{flex:1,overflow:"auto",background:"#fff",borderRadius:12,border:"1px solid #e5e7eb"}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <thead style={{position:"sticky",top:0,zIndex:1}}>
+              <tr style={{background:"#f9fafb",borderBottom:"1px solid #e5e7eb"}}>
+                {["Candidate","Industry","Experience","Location","Status","Date","Update"].map(h=>(
+                  <th key={h} style={{padding:"11px 14px",fontSize:11,fontWeight:700,color:"#6b7280",textAlign:"left",textTransform:"uppercase",letterSpacing:"0.5px",whiteSpace:"nowrap"}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c,i)=>(
+                <tr key={c.id} className="row-hover" onClick={()=>setSelC(selC?.id===c.id?null:c)}
+                  style={{borderBottom:"1px solid #f3f4f6",background:selC?.id===c.id?"#eff6ff":i%2===0?"#fff":"#fafafa",transition:"background 0.1s"}}>
+                  <td style={{padding:"11px 14px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:9}}>
+                      <div style={{width:32,height:32,borderRadius:"50%",background:"#eff6ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#3b82f6",flexShrink:0}}>{c.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+                      <div><div style={{fontSize:13,fontWeight:600,color:"#111827"}}>{c.name}</div><div style={{fontSize:11,color:"#9ca3af"}}>{c.email}</div></div>
+                    </div>
+                  </td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151"}}>{c.industry}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151",whiteSpace:"nowrap"}}>{c.experience}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151",whiteSpace:"nowrap"}}>{c.location}</td>
+                  <td style={{padding:"11px 14px"}}><Badge s={c.status}/></td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#9ca3af",whiteSpace:"nowrap"}}>{c.date}</td>
+                  <td style={{padding:"11px 14px"}}>
+                    <select onClick={e=>e.stopPropagation()} value={c.status} onChange={e=>updateStatus(c.id,e.target.value)}
+                      style={{fontSize:11,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e7eb",cursor:"pointer",background:"#fff"}}>
+                      {["New","Reviewed","Shortlisted","Rejected"].map(s=><option key={s}>{s}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length===0 && <div style={{padding:40,textAlign:"center",color:"#9ca3af",fontSize:14}}>No candidates found matching your search.</div>}
+        </div>
+      </div>
+
+      {selC && (
+        <div className="slide-in" style={{width:290,background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20,flexShrink:0,overflow:"auto",maxHeight:"calc(100vh - 120px)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <span style={{fontSize:14,fontWeight:700,color:"#111827"}}>Candidate Profile</span>
+            <button onClick={()=>setSelC(null)} style={{background:"#f3f4f6",border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:"#6b7280"}}>×</button>
+          </div>
+          <div style={{textAlign:"center",marginBottom:18}}>
+            <div style={{width:56,height:56,borderRadius:"50%",background:"#eff6ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:700,color:"#3b82f6",margin:"0 auto 8px"}}>{selC.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+            <div style={{fontWeight:700,fontSize:15,color:"#111827"}}>{selC.name}</div>
+            <div style={{fontSize:12,color:"#6b7280",marginBottom:8}}>{selC.title}</div>
+            <Badge s={selC.status}/>
+          </div>
+          {[["📧","Email",selC.email],["📱","Phone",selC.phone],["🌍","Nationality",selC.nationality||"—"],["📍","Location",selC.location],["🏭","Industry",selC.industry],["⏱","Experience",selC.experience],["📅","Applied",selC.date]].map(([ico,lbl,val])=>(
+            <div key={lbl} style={{display:"flex",gap:10,marginBottom:10}}>
+              <span style={{flexShrink:0}}>{ico}</span>
+              <div><div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.5px"}}>{lbl}</div><div style={{fontSize:12,color:"#374151",fontWeight:500}}>{val}</div></div>
+            </div>
+          ))}
+          <div style={{borderTop:"1px solid #f3f4f6",paddingTop:14,marginTop:4}}>
+            <div style={{fontSize:11,color:"#6b7280",marginBottom:8,fontWeight:600}}>Update Status</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {["New","Reviewed","Shortlisted","Rejected"].map(s=>{
+                const c2=SC[s]||{};
+                return <button key={s} onClick={()=>{const upd=candidates.find(x=>x.id===selC.id);if(upd){setCandidates(arr=>arr.map(x=>x.id===selC.id?{...x,status:s}:x));setSelC(p=>({...p,status:s}));showNotif(`Status → ${s}`);}}}
+                  style={{fontSize:11,padding:"5px 10px",borderRadius:20,border:`1px solid ${selC.status===s?c2.color:"#e5e7eb"}`,background:selC.status===s?c2.bg:"#fff",color:selC.status===s?c2.color:"#374151",cursor:"pointer",fontWeight:selC.status===s?700:400}}>{s}</button>;
+              })}
+            </div>
+          </div>
+          <div style={{borderTop:"1px solid #f3f4f6",paddingTop:14,marginTop:10}}>
+            <div style={{fontSize:11,color:"#6b7280",marginBottom:6,fontWeight:600}}>Internal Note</div>
+            <textarea defaultValue={selC.note} placeholder="Add notes about this candidate..."
+              onChange={e=>{setCandidates(arr=>arr.map(x=>x.id===selC.id?{...x,note:e.target.value}:x));}}
+              style={{width:"100%",padding:"8px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:12,resize:"vertical",minHeight:70}}/>
+          </div>
+          <button style={{width:"100%",marginTop:10,padding:"9px",borderRadius:8,background:"#1d4ed8",color:"#fff",border:"none",cursor:"pointer",fontSize:12,fontWeight:600}}>📄 View / Download CV</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── EMPLOYERS TAB ───────────────────────────────────────────
+function EmployersTab({employers,setEmployers,selE,setSelE,showNotif}){
+  const [search,setSearch]=useState("");
+
+  const updateStatus=(id,status)=>{
+    setEmployers(e=>e.map(x=>x.id===id?{...x,status}:x));
+    showNotif(`Job status updated to "${status}"`);
+    if(selE?.id===id) setSelE(p=>({...p,status}));
+  };
+
+  const filtered=employers.filter(e=>{
+    const q=search.toLowerCase();
+    return e.company.toLowerCase().includes(q)||e.jobTitle.toLowerCase().includes(q)||e.industry.toLowerCase().includes(q)||e.location.toLowerCase().includes(q);
+  });
+
+  return (
+    <div style={{display:"flex",gap:18,height:"calc(100vh - 120px)"}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
+        <div style={{display:"flex",gap:10,marginBottom:14}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍  Search company, job title, industry..."
+            style={{flex:1,padding:"10px 14px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}}/>
+          <div style={{padding:"10px 14px",borderRadius:8,background:"#ecfdf5",color:"#065f46",fontSize:13,fontWeight:600,whiteSpace:"nowrap"}}>{filtered.length} employers</div>
+        </div>
+        <div style={{flex:1,overflow:"auto",background:"#fff",borderRadius:12,border:"1px solid #e5e7eb"}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <thead style={{position:"sticky",top:0,zIndex:1}}>
+              <tr style={{background:"#f9fafb",borderBottom:"1px solid #e5e7eb"}}>
+                {["Company","Job Title","Industry","Location","Salary","Vac.","Status","Update"].map(h=>(
+                  <th key={h} style={{padding:"11px 14px",fontSize:11,fontWeight:700,color:"#6b7280",textAlign:"left",textTransform:"uppercase",letterSpacing:"0.5px",whiteSpace:"nowrap"}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((e,i)=>(
+                <tr key={e.id} className="row-hover" onClick={()=>setSelE(selE?.id===e.id?null:e)}
+                  style={{borderBottom:"1px solid #f3f4f6",background:selE?.id===e.id?"#f0fdf4":i%2===0?"#fff":"#fafafa",transition:"background 0.1s"}}>
+                  <td style={{padding:"11px 14px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:9}}>
+                      <div style={{width:32,height:32,borderRadius:8,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#10b981",flexShrink:0}}>{e.company.slice(0,2).toUpperCase()}</div>
+                      <div><div style={{fontSize:13,fontWeight:600,color:"#111827"}}>{e.company}</div><div style={{fontSize:11,color:"#9ca3af"}}>{e.contact}</div></div>
+                    </div>
+                  </td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151"}}>{e.jobTitle}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151"}}>{e.industry}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151",whiteSpace:"nowrap"}}>{e.location}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151",whiteSpace:"nowrap"}}>{e.salary}</td>
+                  <td style={{padding:"11px 14px",fontSize:12,color:"#374151",textAlign:"center"}}>{e.vacancies}</td>
+                  <td style={{padding:"11px 14px"}}><Badge s={e.status}/></td>
+                  <td style={{padding:"11px 14px"}}>
+                    <select onClick={ev=>ev.stopPropagation()} value={e.status} onChange={ev=>updateStatus(e.id,ev.target.value)}
+                      style={{fontSize:11,padding:"4px 8px",borderRadius:6,border:"1px solid #e5e7eb",cursor:"pointer",background:"#fff"}}>
+                      {["Active","Pending","Closed"].map(s=><option key={s}>{s}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length===0 && <div style={{padding:40,textAlign:"center",color:"#9ca3af",fontSize:14}}>No employers found.</div>}
+        </div>
+      </div>
+
+      {selE && (
+        <div className="slide-in" style={{width:290,background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20,flexShrink:0,overflow:"auto",maxHeight:"calc(100vh - 120px)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <span style={{fontSize:14,fontWeight:700,color:"#111827"}}>Employer Details</span>
+            <button onClick={()=>setSelE(null)} style={{background:"#f3f4f6",border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:"#6b7280"}}>×</button>
+          </div>
+          <div style={{textAlign:"center",marginBottom:18}}>
+            <div style={{width:56,height:56,borderRadius:12,background:"#ecfdf5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:700,color:"#10b981",margin:"0 auto 8px"}}>{selE.company.slice(0,2).toUpperCase()}</div>
+            <div style={{fontWeight:700,fontSize:15,color:"#111827"}}>{selE.company}</div>
+            <div style={{fontSize:12,color:"#6b7280",marginBottom:8}}>{selE.jobTitle}</div>
+            <Badge s={selE.status}/>
+          </div>
+          {[["👤","Contact",selE.contact],["📧","Email",selE.email],["📱","Phone",selE.phone],["🏭","Industry",selE.industry],["📍","Location",selE.location],["💰","Salary",selE.salary],["🔢","Vacancies",selE.vacancies],["💼","Type",selE.type],["📅","Posted",selE.date]].map(([ico,lbl,val])=>(
+            <div key={lbl} style={{display:"flex",gap:10,marginBottom:10}}>
+              <span style={{flexShrink:0}}>{ico}</span>
+              <div><div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.5px"}}>{lbl}</div><div style={{fontSize:12,color:"#374151",fontWeight:500}}>{val}</div></div>
+            </div>
+          ))}
+          {selE.desc && <div style={{background:"#f9fafb",borderRadius:8,padding:10,marginBottom:10}}><div style={{fontSize:10,color:"#9ca3af",textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:4}}>Job Description</div><div style={{fontSize:12,color:"#374151",lineHeight:1.5}}>{selE.desc}</div></div>}
+          <div style={{borderTop:"1px solid #f3f4f6",paddingTop:14,marginTop:4}}>
+            <div style={{fontSize:11,color:"#6b7280",marginBottom:8,fontWeight:600}}>Update Status</div>
+            <div style={{display:"flex",gap:6}}>
+              {["Active","Pending","Closed"].map(s=>{const c2=SC[s]||{};return <button key={s} onClick={()=>updateStatus(selE.id,s)} style={{flex:1,fontSize:11,padding:"5px",borderRadius:6,border:`1px solid ${selE.status===s?c2.color:"#e5e7eb"}`,background:selE.status===s?c2.bg:"#fff",color:selE.status===s?c2.color:"#374151",cursor:"pointer",fontWeight:selE.status===s?700:400}}>{s}</button>;})}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── JOBS TAB ────────────────────────────────────────────────
+function JobsTab(){
+  const [adding,setAdding]=useState(false);
+  const [jobs,setJobs]=useState(JOBS_LIST);
+  const [form,setForm]=useState({title:"",company:"",location:"",salary:"",type:"Full-time",industry:"",icon:"💼"});
+  const addJob=()=>{
+    if(!form.title||!form.company) return;
+    setJobs(j=>[{...form},,...j]);
+    setForm({title:"",company:"",location:"",salary:"",type:"Full-time",industry:"",icon:"💼"});
+    setAdding(false);
+  };
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div style={{fontSize:14,color:"#6b7280"}}>{jobs.length} live job listings on your website</div>
+        <button onClick={()=>setAdding(a=>!a)} style={{padding:"9px 18px",borderRadius:8,background:"#1d4ed8",color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>
+          {adding?"✕ Cancel":"+ Add Job Listing"}
+        </button>
+      </div>
+
+      {adding && (
+        <div className="fade-in" style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20,marginBottom:18}}>
+          <h3 style={{fontSize:14,fontWeight:700,marginBottom:14,color:"#111827"}}>Add New Job Listing</h3>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {[["Job Title","title"],["Company","company"],["Location","location"],["Salary Range","salary"],["Industry","industry"]].map(([ph,key])=>(
+              <input key={key} placeholder={ph} value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
+                style={{padding:"9px 12px",borderRadius:7,border:"1px solid #e5e7eb",fontSize:13}}/>
+            ))}
+            <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}
+              style={{padding:"9px 12px",borderRadius:7,border:"1px solid #e5e7eb",fontSize:13,background:"#fff"}}>
+              {["Full-time","Part-time","Contract","Remote"].map(t=><option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <button onClick={addJob} style={{marginTop:12,padding:"9px 20px",borderRadius:8,background:"#10b981",color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>✓ Add to Website</button>
+        </div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+        {jobs.map((job,i)=>(
+          <div key={i} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:18,transition:"all 0.2s"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+              <div style={{display:"flex",gap:10,alignItems:"flex-start",flex:1}}>
+                <div style={{width:38,height:38,borderRadius:9,background:"#eff6ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{job.icon}</div>
+                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:"#111827",lineHeight:1.3}}>{job.title}</div></div>
+              </div>
+              <span style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:"#ecfdf5",color:"#065f46",flexShrink:0,marginLeft:8}}>● Live</span>
+            </div>
+            <div style={{fontSize:12,color:"#6b7280",marginBottom:3}}>🏢 {job.company}</div>
+            <div style={{fontSize:12,color:"#6b7280",marginBottom:3}}>📍 {job.location}</div>
+            <div style={{fontSize:12,color:"#374151",fontWeight:600,marginBottom:10}}>💰 {job.salary}/mo</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              <span style={{fontSize:10,padding:"3px 8px",borderRadius:6,background:"#eff6ff",color:"#1d4ed8"}}>{job.type}</span>
+              {job.industry && <span style={{fontSize:10,padding:"3px 8px",borderRadius:6,background:"#f3f4f6",color:"#374151"}}>{job.industry}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── ANALYTICS TAB ───────────────────────────────────────────
+function AnalyticsTab({candidates,employers}){
+  const indMap={};
+  candidates.forEach(c=>{indMap[c.industry]=(indMap[c.industry]||0)+1;});
+  const indData=Object.entries(indMap).sort((a,b)=>b[1]-a[1]);
+  const maxVal=indData[0]?.[1]||1;
+  const statusMap={New:0,Reviewed:0,Shortlisted:0,Rejected:0};
+  candidates.forEach(c=>{if(statusMap[c.status]!==undefined)statusMap[c.status]++;});
+  const locMap={};
+  candidates.forEach(c=>{locMap[c.location]=(locMap[c.location]||0)+1;});
+  const locData=Object.entries(locMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  const BAR_COLORS=["#3b82f6","#10b981","#f59e0b","#8b5cf6","#ef4444","#06b6d4","#ec4899"];
+
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20}}>
+        <h3 style={{fontSize:14,fontWeight:700,color:"#111827",marginBottom:16}}>Candidates by Industry</h3>
+        {indData.map(([ind,count],i)=>(
+          <div key={ind} style={{marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontSize:12,color:"#374151"}}>{ind}</span>
+              <span style={{fontSize:12,fontWeight:700,color:BAR_COLORS[i%BAR_COLORS.length]}}>{count}</span>
+            </div>
+            <div style={{height:8,background:"#f3f4f6",borderRadius:4,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${(count/maxVal)*100}%`,background:BAR_COLORS[i%BAR_COLORS.length],borderRadius:4,transition:"width 0.6s ease"}}/>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20}}>
+        <h3 style={{fontSize:14,fontWeight:700,color:"#111827",marginBottom:16}}>Application Status Breakdown</h3>
+        {Object.entries(statusMap).map(([s,count])=>(
+          <div key={s} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #f9fafb"}}>
+            <Badge s={s}/>
+            <div style={{flex:1,height:8,background:"#f3f4f6",borderRadius:4,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${candidates.length?((count/candidates.length)*100):0}%`,background:SC[s]?.color||"#9ca3af",borderRadius:4}}/>
+            </div>
+            <span style={{fontSize:13,fontWeight:700,color:"#111827",minWidth:24,textAlign:"right"}}>{count}</span>
+          </div>
+        ))}
+
+        <h3 style={{fontSize:14,fontWeight:700,color:"#111827",margin:"20px 0 14px"}}>Top Locations</h3>
+        {locData.map(([loc,count],i)=>(
+          <div key={loc} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #f9fafb"}}>
+            <span style={{fontSize:12,color:"#374151"}}>📍 {loc}</span>
+            <span style={{fontSize:12,fontWeight:700,color:BAR_COLORS[i]}}>{count} candidate{count!==1?"s":""}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20}}>
+        <h3 style={{fontSize:14,fontWeight:700,color:"#111827",marginBottom:16}}>Employer Job Status</h3>
+        {["Active","Pending","Closed"].map(s=>{
+          const count=employers.filter(e=>e.status===s).length;
+          return (
+            <div key={s} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #f9fafb"}}>
+              <Badge s={s}/>
+              <div style={{flex:1,height:8,background:"#f3f4f6",borderRadius:4,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${employers.length?((count/employers.length)*100):0}%`,background:SC[s]?.color||"#9ca3af",borderRadius:4}}/>
+              </div>
+              <span style={{fontSize:13,fontWeight:700,color:"#111827",minWidth:24,textAlign:"right"}}>{count}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:20}}>
+        <h3 style={{fontSize:14,fontWeight:700,color:"#111827",marginBottom:16}}>Quick Summary</h3>
+        {[
+          ["Total Candidates",candidates.length,"👤"],
+          ["Total Employers",employers.length,"🏢"],
+          ["Conversion Rate (Shortlisted)",`${candidates.length?Math.round((candidates.filter(c=>c.status==="Shortlisted").length/candidates.length)*100):0}%`,"📊"],
+          ["Active Job Openings",employers.filter(e=>e.status==="Active").reduce((a,e)=>a+(Number(e.vacancies)||0),0),"💼"],
+          ["Avg Vacancies / Employer",employers.length?(employers.reduce((a,e)=>a+(Number(e.vacancies)||0),0)/employers.length).toFixed(1):"0","🔢"],
+        ].map(([lbl,val,ico])=>(
+          <div key={lbl} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #f9fafb"}}>
+            <span style={{fontSize:12,color:"#374151"}}>{ico} {lbl}</span>
+            <span style={{fontSize:14,fontWeight:700,color:"#1d4ed8"}}>{val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── SETTINGS TAB ────────────────────────────────────────────
+function SettingsTab({showNotif,logout}){
+  const [url,setUrl]=useState("");
+  const [key,setKey]=useState("");
+  const [pw,setPw]=useState("");
+  return (
+    <div style={{maxWidth:600}}>
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:24,marginBottom:18}}>
+        <h3 style={{fontSize:15,fontWeight:700,marginBottom:4}}>🔗 Connect Supabase (Free Database)</h3>
+        <p style={{fontSize:13,color:"#6b7280",marginBottom:16}}>Connect a free Supabase database so real form submissions from your website appear here automatically.</p>
+        {["Go to supabase.com → Sign up free","Create new project → name it 'tangent-jobs'","Table Editor → Create table: candidate_applications","Create table: employer_requests (add columns matching your forms)","Settings → API → Copy Project URL & anon key","Paste below and save"].map((s,i)=>(
+          <div key={i} style={{display:"flex",gap:12,marginBottom:10,alignItems:"flex-start"}}>
+            <div style={{width:24,height:24,borderRadius:"50%",background:"#eff6ff",color:"#1d4ed8",fontWeight:700,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{i+1}</div>
+            <div style={{fontSize:13,color:"#374151",paddingTop:3}}>{s}</div>
+          </div>
+        ))}
+        <div style={{marginTop:16,display:"flex",flexDirection:"column",gap:10}}>
+          <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="Supabase Project URL (https://xxx.supabase.co)"
+            style={{padding:"10px 14px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}}/>
+          <input value={key} onChange={e=>setKey(e.target.value)} placeholder="Supabase Anon Public API Key"
+            style={{padding:"10px 14px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}}/>
+          <button onClick={()=>showNotif("Settings saved! Update your website forms to POST to Supabase.")}
+            style={{padding:"10px",borderRadius:8,background:"#1d4ed8",color:"#fff",border:"none",cursor:"pointer",fontSize:13,fontWeight:600}}>
+            💾 Save & Connect Supabase
+          </button>
+        </div>
+      </div>
+
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:24,marginBottom:18}}>
+        <h3 style={{fontSize:15,fontWeight:700,marginBottom:14}}>🔑 Change Admin Password</h3>
+        <p style={{fontSize:13,color:"#6b7280",marginBottom:12}}>Default password is <code style={{background:"#f3f4f6",padding:"2px 6px",borderRadius:4}}>tangent2025</code>. To change it, edit the <code style={{background:"#f3f4f6",padding:"2px 6px",borderRadius:4}}>ADMIN_PASSWORD</code> variable at the top of index.html.</p>
+        <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:12,fontSize:12,color:"#92400e"}}>
+          ⚠️ This is a frontend-only password. It protects casual access but not determined attackers. For full security, host this on a private server with proper authentication.
+        </div>
+      </div>
+
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:24,marginBottom:18}}>
+        <h3 style={{fontSize:15,fontWeight:700,marginBottom:12}}>💳 Your Plan</h3>
+        <div style={{background:"#f0fdf4",borderRadius:10,padding:14,border:"1px solid #bbf7d0",marginBottom:12}}>
+          <div style={{fontWeight:700,color:"#065f46",fontSize:14}}>✅ Free Plan — Year 1</div>
+          <div style={{fontSize:13,color:"#047857",marginTop:4}}>All features unlocked. Candidates always free. Employers pay after 12 months.</div>
+        </div>
+        <div style={{fontSize:13,color:"#6b7280"}}>After Year 1, employer job posting becomes a paid feature. You can set pricing for companies who want to post jobs on your portal. Candidate registration remains free forever.</div>
+      </div>
+
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",padding:24}}>
+        <h3 style={{fontSize:15,fontWeight:700,marginBottom:12}}>🌐 Website Links</h3>
+        {[["Your Job Portal","https://tangentjobs.github.io/tangent-job-portal/"],["This CMS (once deployed)","https://tangentjobs.github.io/tangent-cms/"],["Supabase Dashboard","https://supabase.com"],["GitHub Pages Docs","https://pages.github.com"]].map(([lbl,url2])=>(
+          <div key={lbl} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #f3f4f6"}}>
+            <span style={{fontSize:13,color:"#374151"}}>{lbl}</span>
+            <a href={url2} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#3b82f6",textDecoration:"none"}}>Open →</a>
+          </div>
+        ))}
+        <button onClick={logout} style={{marginTop:14,width:"100%",padding:"9px",borderRadius:8,background:"#fef2f2",color:"#dc2626",border:"1px solid #fecaca",cursor:"pointer",fontSize:13,fontWeight:600}}>
+          🚪 Logout from CMS
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── APP ─────────────────────────────────────────────────────
+function App(){
+  const [loggedIn,setLoggedIn]=useState(()=>sessionStorage.getItem("tcms_auth")==="1");
+  const [activeTab,setActiveTab]=useState("Dashboard");
+  const [candidates,setCandidates]=useState(INIT_CANDIDATES);
+  const [employers,setEmployers]=useState(INIT_EMPLOYERS);
+  const [selC,setSelC]=useState(null);
+  const [selE,setSelE]=useState(null);
+  const [sidebarOpen,setSidebarOpen]=useState(true);
+  const [notif,setNotif]=useState(null);
+
+  const showNotif=(msg)=>{setNotif(msg);setTimeout(()=>setNotif(null),3000);};
+  const login=()=>{sessionStorage.setItem("tcms_auth","1");setLoggedIn(true);};
+  const logout=()=>{sessionStorage.removeItem("tcms_auth");setLoggedIn(false);};
+
+  if(!loggedIn) return <Login onLogin={login}/>;
+
+  const newCount=candidates.filter(c=>c.status==="New").length;
+
+  return (
+    <div style={{display:"flex",height:"100vh",overflow:"hidden"}}>
+      <Notif n={notif}/>
+      <Sidebar active={activeTab} setActive={(t)=>{setActiveTab(t);}} open={sidebarOpen} setOpen={setSidebarOpen} newCount={newCount} logout={logout}/>
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        {/* Top Bar */}
+        <div style={{background:"#fff",borderBottom:"1px solid #e5e7eb",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+          <div>
+            <h1 style={{margin:0,fontSize:18,fontWeight:700,color:"#111827"}}>{activeTab}</h1>
+            <p style={{margin:0,fontSize:11,color:"#9ca3af"}}>Tangent HR Solutions · Dubai, UAE</p>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            {newCount>0 && <div style={{background:"#fef2f2",border:"1px solid #fecaca",color:"#dc2626",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:600,animation:"pulse 2s infinite"}}>🔔 {newCount} new application{newCount!==1?"s":""}</div>}
+            <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:8,padding:"6px 12px",fontSize:12,color:"#374151"}}>
+              📅 {new Date().toLocaleDateString("en-AE",{day:"numeric",month:"short",year:"numeric"})}
+            </div>
+            <div style={{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:13}}>A</div>
+          </div>
+        </div>
+        {/* Content */}
+        <div style={{flex:1,overflow:"auto",padding:20}}>
+          {activeTab==="Dashboard" && <DashboardTab candidates={candidates} employers={employers} setActive={setActiveTab} setSelC={setSelC} setSelE={setSelE}/>}
+          {activeTab==="Candidates" && <CandidatesTab candidates={candidates} setCandidates={setCandidates} selC={selC} setSelC={setSelC} showNotif={showNotif}/>}
+          {activeTab==="Employers" && <EmployersTab employers={employers} setEmployers={setEmployers} selE={selE} setSelE={setSelE} showNotif={showNotif}/>}
+          {activeTab==="Jobs" && <JobsTab/>}
+          {activeTab==="Analytics" && <AnalyticsTab candidates={candidates} employers={employers}/>}
+          {activeTab==="Settings" && <SettingsTab showNotif={showNotif} logout={logout}/>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
